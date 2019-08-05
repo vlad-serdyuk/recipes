@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
+import { environment } from '../../environments/environment';
 import { User } from './user.model';
 
 export interface AuthResponseData {
@@ -20,7 +21,8 @@ export interface AuthResponseData {
   providedIn: 'root',
 })
 export class AuthService {
-  url: ''; // provide url here
+  // @ts-ignore
+  url: environment.apiUrl;
   user = new BehaviorSubject<User>(null);
   private tokenExpirationTimer: any;
 
