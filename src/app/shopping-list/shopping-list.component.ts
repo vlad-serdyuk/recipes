@@ -5,6 +5,8 @@ import { Store } from '@ngrx/store';
 import { Ingredient } from '../shared/ingredient.model';
 import { ShoppingListService } from './shopping-list.service';
 import { LoggingService } from '../logging.service';
+import * as ShoppingList from './store/shopping-list.reducer';
+import * as ShoppingListActions from './store/shopping-list.actions';
 
 
 @Component({
@@ -19,23 +21,16 @@ export class ShoppingListComponent implements OnInit, OnDestroy {
   constructor(
     private slService: ShoppingListService,
     private loggingService: LoggingService,
-    private store: Store<{ shoppingList: { ingredients: Ingredient[] } }>,
+    private store: Store<ShoppingList.AppState>,
     ) { }
 
   ngOnInit() {
     this.ingredients = this.store.select('shoppingList');
-
-/*    this.ingredients = this.slService.getIngredients();
-    this.subscription = this.slService.ingredientsChanged
-      .subscribe(
-        (ingredients: Ingredient[]) => {
-          this.ingredients = ingredients;
-        }
-      );*/
     this.loggingService.log('shopping-list init');
   }
 
   onEditItem(index: number) {
+    this.store.dispatch(new ShoppingListActions.StartEdit(index));
     this.slService.startedEditing.next(index);
   }
 
