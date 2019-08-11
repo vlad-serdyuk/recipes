@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { HttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
+import { switchMap, catchError, map, tap } from 'rxjs/operators';
 
-import { switchMap, catchError, map } from 'rxjs/operators';
 import * as AuthActions from './auth.actions';
 import { environment } from '../../../environments/environment';
 
@@ -24,6 +25,7 @@ export class AuthEffects {
   constructor(
     private actions$: Actions,
     private http: HttpClient,
+    private router: Router,
     ) {}
 
   @Effect()
@@ -43,10 +45,21 @@ export class AuthEffects {
           map(response => {
             const { localId, email, idToken, expiresIn } = response;
             const expirationDate = new Date(new Date().getTime() + Number(expiresIn) * 1000);
-            return of(new AuthActions.Login({ userId: localId, email, token: idToken, expirationDate }));
+            return new AuthActions.AuthenticateSuccess({ userId: localId, email, token: idToken, expirationDate });
           }),
-          catchError(error => of()),
+          catchError(error => of(new AuthActions.AuthenticateFailed(error))),
         )
     }),
+  );
+
+  @Effect({ dispatch: false })
+  authSuccess = this.actions$.pipe(
+    ofType(AuthActions.AUTHENTICATE_SUCCESS),
+    tap(() => this.router.navigate(['/'])),
+  );
+
+  @Effect()
+  authSignup = this.actions$.pipe(
+    ofType(AuthActions.SIGNUP_START),
   );
 }

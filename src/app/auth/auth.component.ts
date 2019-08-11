@@ -1,4 +1,4 @@
-import { Component, ComponentFactoryResolver, OnDestroy, ViewChild } from '@angular/core';
+import { Component, ComponentFactoryResolver, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,7 +14,7 @@ import * as AuthActions from './store/auth.actions';
   selector: 'app-auth',
   templateUrl: './auth.component.html',
 })
-export class AuthComponent implements OnDestroy {
+export class AuthComponent implements OnInit, OnDestroy {
   isLoginMode = true;
   isLoading = false;
   error: string = null;
@@ -28,6 +28,17 @@ export class AuthComponent implements OnDestroy {
     private componentFactoryResolver: ComponentFactoryResolver,
     private store: Store<AppState>,
   ) {}
+
+  ngOnInit() {
+    this.store.select('auth').subscribe(({ loading, authError }) => {
+      this.isLoading = loading;
+      this.error = authError;
+
+      if (this.error) {
+        this.showErrorAlert(this.error);
+      }
+    });
+  }
 
   onSwitchMode() {
     this.isLoginMode = !this.isLoginMode;
@@ -49,18 +60,6 @@ export class AuthComponent implements OnDestroy {
     } else {
       authObservable = this.authService.signup(email, password);
     }
-
-    authObservable.subscribe(
-      responseData => {
-        this.isLoading = false;
-        this.router.navigate(['/recipes']);
-      },
-      error => {
-        this.isLoading = false;
-        this.error = 'Smth went wrong with auth request';
-        this.showErrorAlert(this.error);
-      }
-    );
 
     form.reset();
   }
