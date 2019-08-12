@@ -35,32 +35,6 @@ export class AuthService {
     private store: Store<AppState>,
     ) {}
 
-  signup(email: string, password: string) {
-    return this.http.post<AuthResponseData>(
-      this.url,
-      {
-        email,
-        password,
-        returnSecureToken: true,
-      })
-      .pipe(tap(
-        (data) => this.setUser(data),
-      ));
-  }
-
-  login(email: string, password: string) {
-    return this.http.post<AuthResponseData>(
-      this.url,
-      {
-        email,
-        password,
-        returnSecureToken: true,
-      })
-      .pipe(tap(
-        (data) => this.setUser(data),
-      ));
-  }
-
   autoLogin() {
     const userData: {
       id: string,
@@ -90,7 +64,6 @@ export class AuthService {
 
   logout() {
     this.store.dispatch(new AuthActions.Logout());
-    this.router.navigate(['/auth']);
     localStorage.removeItem('userData');
 
     if (this.tokenExpirationTimer) {
