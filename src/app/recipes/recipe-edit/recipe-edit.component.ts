@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { map } from 'rxjs/operators';
 
 import { RecipeService } from '../recipe.service';
+import { AppState } from '../../store/app.reducer';
+
 
 @Component({
   selector: 'app-recipe-edit',
@@ -18,6 +22,7 @@ export class RecipeEditComponent implements OnInit {
     private route: ActivatedRoute,
     private recipeService: RecipeService,
     private router: Router,
+    private store: Store<AppState>,
   ) { }
 
   ngOnInit() {
@@ -35,18 +40,22 @@ export class RecipeEditComponent implements OnInit {
     let recipeIngredients;
 
     if (this.editMode) {
-      const recipe = this.recipeService.getRecipe(this.id);
-      recipeName = recipe.name;
-      recipeImagePath = recipe.imagePath;
-      recipeDescription = recipe.description;
-      if (recipe['ingredients']) {
-        recipeIngredients = recipe.ingredients.map((ingredient) => {
-          return new FormGroup({
-            name: new FormControl(ingredient.name, Validators.required),
-            amount: new FormControl(ingredient.amount),
-          });
-        });
-      }
+      this.store.select('recipes').pipe(
+        map(recipeState => recipeState.recipes.find((recipe, idx) => idx === this.id)),
+      ).subscribe(recipe => {
+          recipeName = recipe.name;
+          recipeImagePath = recipe.imagePath;
+          recipeDescription = recipe.description;
+          if (recipe['ingredients']) {
+            recipeIngredients = recipe.ingredients.map((ingredient) => {
+              return new FormGroup({
+                name: new FormControl(ingredient.name, Validators.required),
+                amount: new FormControl(ingredient.amount),
+              });
+            });
+          }
+        }
+      );
     }
 
     this.recipeForm = new FormGroup({
