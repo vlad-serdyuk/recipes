@@ -24,7 +24,13 @@ const handleAuthentication = ({ localId, email, idToken, expiresIn }) => {
   const expirationDate = new Date(new Date().getTime() + Number(expiresIn) * 1000);
   const user = new User(localId, email, idToken, expirationDate);
   localStorage.setItem('userData', JSON.stringify(user));
-  return new AuthActions.AuthenticateSuccess({ userId: localId, email, token: idToken, expirationDate });
+  return new AuthActions.AuthenticateSuccess({
+    userId: localId,
+    email,
+    token: idToken,
+    expirationDate,
+    redirect: true,
+  });
 };
 
 @Injectable()
@@ -62,7 +68,11 @@ export class AuthEffects {
   @Effect({ dispatch: false })
   authRedirect = this.actions$.pipe(
     ofType(AuthActions.AUTHENTICATE_SUCCESS),
-    tap(() => this.router.navigate(['/'])),
+    tap((authSuccessAction: AuthActions.AuthenticateSuccess) => {
+      if (authSuccessAction.payload.redirect) {
+        this.router.navigate(['/'])
+      }
+    }),
   );
 
   @Effect()
@@ -107,7 +117,13 @@ export class AuthEffects {
 
       if (loadedUser.token) {
         this.authService.setLogoutTimer(Number(_tokenExpirationDate) * 1000);
-        return new AuthActions.AuthenticateSuccess({userId: id, email, token: _token, expirationDate});
+        return new AuthActions.AuthenticateSuccess({
+          userId: id,
+          email,
+          token: _token,
+          expirationDate,
+          redirect: false,
+        });
       }
 
       return { type: 'Stub action' };
