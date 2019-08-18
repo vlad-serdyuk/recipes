@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
+import { Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { RecipeService } from '../recipe.service';
+import * as RecipeActions from '../store/recipe.actions';
 import { AppState } from '../../store/app.reducer';
 
 
@@ -13,14 +14,15 @@ import { AppState } from '../../store/app.reducer';
   templateUrl: './recipe-edit.component.html',
   styleUrls: ['./recipe-edit.component.css']
 })
-export class RecipeEditComponent implements OnInit {
+export class RecipeEditComponent implements OnInit, OnDestroy {
   id: number;
   editMode: boolean;
   recipeForm: FormGroup;
 
+  private storeSub: Subscription;
+
   constructor(
     private route: ActivatedRoute,
-    private recipeService: RecipeService,
     private router: Router,
     private store: Store<AppState>,
   ) { }
@@ -40,7 +42,7 @@ export class RecipeEditComponent implements OnInit {
     let recipeIngredients;
 
     if (this.editMode) {
-      this.store.select('recipes').pipe(
+      this.storeSub = this.store.select('recipes').pipe(
         map(recipeState => recipeState.recipes.find((recipe, idx) => idx === this.id)),
       ).subscribe(recipe => {
           recipeName = recipe.name;
@@ -91,11 +93,17 @@ export class RecipeEditComponent implements OnInit {
     const { value: newRecipe } = this.recipeForm;
 
     if (this.editMode) {
-      this.recipeService.updateRecipe(this.id, newRecipe);
+      this.store.dispatch(new RecipeActions.UpdateRecipe({ index: this.id, newRecipe }));
     } else {
-      this.recipeService.addRecipe(newRecipe);
+      this.store.dispatch(new RecipeActions.AddRecipe(newRecipe));
     }
 
     this.onCancel();
+  }
+
+  ngOnDestroy() {
+    if (this.storeSub) {
+      this.storeSub.unsubscribe();
+    }
   }
 }

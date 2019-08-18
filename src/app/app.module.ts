@@ -11,7 +11,7 @@ import { SharedModule } from './shared/shared.module';
 import { CoreModule } from './core.module';
 import { appReducer } from './store/app.reducer';
 import { AuthEffects } from './auth/store/auth.effects';
-import { RecipeEfects } from './recipes/store/recipe.efects';
+import { RecipeEffects } from './recipes/store/recipe.effects';
 
 @NgModule({
   declarations: [
@@ -22,7 +22,7 @@ import { RecipeEfects } from './recipes/store/recipe.efects';
     BrowserModule,
     AppRoutingModule,
     StoreModule.forRoot(appReducer),
-    EffectsModule.forRoot([AuthEffects, RecipeEfects]),
+    EffectsModule.forRoot([AuthEffects, RecipeEffects]),
     HttpClientModule,
     SharedModule,
     CoreModule,
